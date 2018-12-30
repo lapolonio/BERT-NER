@@ -19,6 +19,7 @@ from sklearn.metrics import f1_score,precision_score,recall_score
 from tensorflow.python.ops import math_ops
 import tf_metrics
 import pickle
+import pandas as pd
 flags = tf.flags
 
 FLAGS = flags.FLAGS
@@ -166,6 +167,60 @@ class DataProcessor(object):
                 words.append(word)
                 labels.append(label)
             return lines
+
+
+class NtcirSubcatProcessor(DataProcessor):
+    def get_train_examples(self, data_dir):
+        return self._create_example(
+            self._read_data(os.path.join(data_dir, "train.csv")), "train"
+        )
+
+    def get_dev_examples(self, data_dir):
+        return self._create_example(
+            self._read_data(os.path.join(data_dir, "dev.csv")), "dev"
+        )
+
+    def get_test_examples(self,data_dir):
+        return self._create_example(
+            self._read_data(os.path.join(data_dir, "test.csv")), "test")
+
+    def get_labels(self):
+        return ['absolute',
+                'buy_price',
+                'change',
+                'date',
+                'exercise_price',
+                'forecast',
+                'indicator',
+                'maturity_date',
+                'money',
+                'product_number',
+                'quantity',
+                'quote',
+                'relative',
+                'sell_price',
+                'stop_loss',
+                'support_or_resistance',
+                'time', "X",
+                "[CLS]", "[SEP]"]
+
+    def _create_example(self, lines, set_type):
+        examples = []
+        for (i, line) in enumerate(lines):
+            guid = "%s-%s" % (set_type, i)
+            text = tokenization.convert_to_unicode(line[1])
+            label = tokenization.convert_to_unicode(line[0])
+            examples.append(InputExample(guid=guid, text=text, label=label))
+        return examples
+
+    def _read_data(cls, input_file):
+        """Reads a BIO data."""
+        examples = pd.read_csv(input_file)
+        lines = []
+        for row in examples.iterrows():
+            data = row[1]
+            lines.append([data["subcat_labels"], data["words"]])
+        return lines
 
 
 class NerProcessor(DataProcessor):
@@ -382,7 +437,7 @@ def create_model(bert_config, is_training, input_ids, input_mask,
         predict = tf.argmax(probabilities,axis=-1)
         return (loss, per_example_loss, logits,predict)
         ##########################################################################
-        
+
 def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
                      num_train_steps, num_warmup_steps, use_tpu,
                      use_one_hot_embeddings):
@@ -430,7 +485,7 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
                 train_op=train_op,
                 scaffold_fn=scaffold_fn)
         elif mode == tf.estimator.ModeKeys.EVAL:
-            
+
             def metric_fn(per_example_loss, label_ids, logits):
             # def metric_fn(label_ids, logits):
                 predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
@@ -462,7 +517,8 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
 def main(_):
     tf.logging.set_verbosity(tf.logging.INFO)
     processors = {
-        "ner": NerProcessor
+        "ner": NerProcessor,
+        "ntcir_subcat": NtcirSubcatProcessor
     }
     if not FLAGS.do_train and not FLAGS.do_eval:
         raise ValueError("At least one of `do_train` or `do_eval` must be True.")
@@ -581,7 +637,7 @@ def main(_):
         filed_based_convert_examples_to_features(predict_examples, label_list,
                                                 FLAGS.max_seq_length, tokenizer,
                                                 predict_file,mode="test")
-                            
+
         tf.logging.info("***** Running prediction*****")
         tf.logging.info("  Num examples = %d", len(predict_examples))
         tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
