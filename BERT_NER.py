@@ -240,7 +240,18 @@ class NerProcessor(DataProcessor):
 
 
     def get_labels(self):
-        return ["B-MISC", "I-MISC", "O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "X","[CLS]","[SEP]"]
+        return ["B-MISC",
+                "I-MISC",
+                "O",
+                "B-PER",
+                "I-PER",
+                "B-ORG",
+                "I-ORG",
+                "B-LOC",
+                "I-LOC",
+                "X",
+                "[CLS]",
+                "[SEP]"]
 
     def _create_example(self, lines, set_type):
         examples = []
@@ -424,7 +435,7 @@ def create_model(bert_config, is_training, input_ids, input_mask,
         output_layer = tf.reshape(output_layer, [-1, hidden_size])
         logits = tf.matmul(output_layer, output_weight, transpose_b=True)
         logits = tf.nn.bias_add(logits, output_bias)
-        logits = tf.reshape(logits, [-1, FLAGS.max_seq_length, 13])
+        logits = tf.reshape(logits, [-1, FLAGS.max_seq_length, num_labels + 1])
         # mask = tf.cast(input_mask,tf.float32)
         # loss = tf.contrib.seq2seq.sequence_loss(logits,labels,mask)
         # return (loss, logits, predict)
