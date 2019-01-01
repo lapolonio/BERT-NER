@@ -13,7 +13,7 @@ Created on Wed Jul 11 09:41:57 2018
 consumer_key = "9848ebe6ef91dca5"
 consumer_secret = "ee736d8a0ea23a6c4e79e82ae3da667c05428a32"
 redirect_url = "http://www.google.com"
-code = "9e4e40a2765a9ae77ee1526e522f32cdaf5f52f2"
+code = "6f4883cf96ac35e5b415687c4ee5fd58a501d059"
 
 token_url = "https://api.stocktwits.com/api/2/oauth/token?client_id=" + consumer_key + "&client_secret=" + consumer_secret + "&code=" + code + "&grant_type=authorization_code&redirect_uri=" + redirect_url
 
@@ -28,12 +28,12 @@ for FinNum in [ #"FinNum_training","FinNum_dev",
 "FinNum_test"]:
     with open(FinNum + ".json") as f:
         data = json.load(f)
-    
+
     #Authenticated calls are permitted 400 requests per hour and measured against the access token used in the request.
     not_found = []
     twt = []
     idx = []
-    
+
     i = 0
     while(i != len(data)):
         print(i)
@@ -42,10 +42,10 @@ for FinNum in [ #"FinNum_training","FinNum_dev",
             data[i]["tweet"] = twt[j]
             i = i + 1
             continue
-        
+
         url = "https://api.stocktwits.com/api/2/messages/show/" + str(data[i]["id"]) + ".json?access_token=" + token
         tweet_info = json.loads(requests.get(url).content.decode("utf8"))
-    
+
         if(tweet_info["response"]["status"] == 200):
             tweet = tweet_info["message"]["body"]
             data[i]["tweet"] = tweet
@@ -60,11 +60,11 @@ for FinNum in [ #"FinNum_training","FinNum_dev",
             print(i)
             print(tweet_info)
             i = i + 1
-            
+
     for i in not_found[::-1]:
         del data[i]
-    
+
     print("Missing data: " + str(len(not_found)))
     print("Total: " + str(len(data)) + " instances")
-    
+
     json.dump(data, open(FinNum + "_rebuilded.json", 'w'))
