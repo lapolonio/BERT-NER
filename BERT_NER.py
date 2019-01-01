@@ -500,9 +500,9 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
             def metric_fn(per_example_loss, label_ids, logits):
             # def metric_fn(label_ids, logits):
                 predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
-                precision = tf_metrics.precision(label_ids,predictions,13,[1,2,4,5,6,7,8,9],average="macro")
-                recall = tf_metrics.recall(label_ids,predictions,13,[1,2,4,5,6,7,8,9],average="macro")
-                f = tf_metrics.f1(label_ids,predictions,13,[1,2,4,5,6,7,8,9],average="macro")
+                precision = tf_metrics.precision(label_ids,predictions,num_labels,[1,2,4,5,6,7,8,9],average="macro")
+                recall = tf_metrics.recall(label_ids,predictions,num_labels,[1,2,4,5,6,7,8,9],average="macro")
+                f = tf_metrics.f1(label_ids,predictions,num_labels,[1,2,4,5,6,7,8,9],average="macro")
                 #
                 return {
                     "eval_precision":precision,
