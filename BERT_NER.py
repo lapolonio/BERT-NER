@@ -500,9 +500,10 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
             def metric_fn(per_example_loss, label_ids, logits):
             # def metric_fn(label_ids, logits):
                 predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
-                precision = tf_metrics.precision(label_ids,predictions,num_labels,[1,2,4,5,6,7,8,9],average="macro")
-                recall = tf_metrics.recall(label_ids,predictions,num_labels,[1,2,4,5,6,7,8,9],average="macro")
-                f = tf_metrics.f1(label_ids,predictions,num_labels,[1,2,4,5,6,7,8,9],average="macro")
+                pos_indices = list(range(1,(num_labels-3)))
+                precision = tf_metrics.precision(label_ids,predictions,num_labels, pos_indices, average="macro")
+                recall = tf_metrics.recall(label_ids,predictions,num_labels, pos_indices, average="macro")
+                f = tf_metrics.f1(label_ids,predictions,num_labels, pos_indices, average="macro")
                 #
                 return {
                     "eval_precision":precision,
@@ -667,8 +668,9 @@ def main(_):
         output_predict_file = os.path.join(FLAGS.output_dir, "label_test.txt")
         with open(output_predict_file,'w') as writer:
             for prediction in result:
-                output_line = "\n".join(id2label[id] for id in prediction if id!=0) + "\n"
+                output_line = " ".join(id2label[id] for id in prediction if id != 0) + "\n"
                 writer.write(output_line)
+
 
 if __name__ == "__main__":
     flags.mark_flag_as_required("data_dir")
