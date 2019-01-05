@@ -532,8 +532,8 @@ def main(_):
         "ner": NerProcessor,
         "ntcir_subcat": NtcirSubcatProcessor
     }
-    if not FLAGS.do_train and not FLAGS.do_eval:
-        raise ValueError("At least one of `do_train` or `do_eval` must be True.")
+    if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict:
+        raise ValueError("At least one of `do_train` or `do_eval` or `do_predict` must be True.")
 
     bert_config = modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
 
